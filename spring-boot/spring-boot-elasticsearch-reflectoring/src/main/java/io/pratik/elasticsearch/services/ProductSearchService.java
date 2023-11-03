@@ -78,15 +78,13 @@ public class ProductSearchService {
 				.withQuery(queryBuilder)
 				.build();
 
-		SearchHits<Product> productHits = 
-				elasticsearchOperations
+		SearchHits<Product> productHits = elasticsearchOperations
 				.search(searchQuery, Product.class,
-				  IndexCoordinates.of(PRODUCT_INDEX));
+						IndexCoordinates.of(PRODUCT_INDEX));
 
 		log.info("productHits {} {}", productHits.getSearchHits().size(), productHits.getSearchHits());
 
-		List<SearchHit<Product>> searchHits = 
-				productHits.getSearchHits();
+		List<SearchHit<Product>> searchHits = productHits.getSearchHits();
 		int i = 0;
 		for (SearchHit<Product> searchHit : searchHits) {
 			log.info("searchHit {}", searchHit);
@@ -96,7 +94,7 @@ public class ProductSearchService {
 
 	public void findByProductName(final String productName) {
 		Query searchQuery = new StringQuery(
-				"{\"match\":{\"name\":{\"query\":\""+ productName + "\"}}}\"");
+				"{\"match\":{\"name\":{\"query\":\"" + productName + "\"}}}\"");
 
 		SearchHits<Product> products = elasticsearchOperations.search(searchQuery, Product.class,
 				IndexCoordinates.of(PRODUCT_INDEX));
@@ -112,51 +110,45 @@ public class ProductSearchService {
 
 	public List<Product> processSearch(final String query) {
 		log.info("Search with query {}", query);
-		
+
 		// 1. Create query on multiple fields enabling fuzzy search
-		QueryBuilder queryBuilder = 
-				QueryBuilders
+		QueryBuilder queryBuilder = QueryBuilders
 				.multiMatchQuery(query, "name", "description")
 				.fuzziness(Fuzziness.AUTO);
 
 		Query searchQuery = new NativeSearchQueryBuilder()
-				                .withFilter(queryBuilder)
-				                .build();
+				.withFilter(queryBuilder)
+				.build();
 
 		// 2. Execute search
-		SearchHits<Product> productHits = 
-				elasticsearchOperations
+		SearchHits<Product> productHits = elasticsearchOperations
 				.search(searchQuery, Product.class,
-				IndexCoordinates.of(PRODUCT_INDEX));
+						IndexCoordinates.of(PRODUCT_INDEX));
 
 		// 3. Map searchHits to product list
 		List<Product> productMatches = new ArrayList<Product>();
-		productHits.forEach(srchHit->{
+		productHits.forEach(srchHit -> {
 			productMatches.add(srchHit.getContent());
 		});
 		return productMatches;
 	}
 
-	
-
-	
 	public List<String> fetchSuggestions(String query) {
 		QueryBuilder queryBuilder = QueryBuilders
-				.wildcardQuery("name", query+"*");
+				.wildcardQuery("name", query + "*");
 
 		Query searchQuery = new NativeSearchQueryBuilder()
 				.withFilter(queryBuilder)
 				.withPageable(PageRequest.of(0, 5))
 				.build();
 
-		SearchHits<Product> searchSuggestions = 
-				elasticsearchOperations.search(searchQuery, 
-						Product.class,
+		SearchHits<Product> searchSuggestions = elasticsearchOperations.search(searchQuery,
+				Product.class,
 				IndexCoordinates.of(PRODUCT_INDEX));
-		
+
 		List<String> suggestions = new ArrayList<String>();
-		
-		searchSuggestions.getSearchHits().forEach(searchHit->{
+
+		searchSuggestions.getSearchHits().forEach(searchHit -> {
 			suggestions.add(searchHit.getContent().getName());
 		});
 		return suggestions;

@@ -1,0 +1,27 @@
+management:
+  endpoint:
+    health:
+      show-details: ALWAYS
+  health:
+    ratelimiters:
+      enabled: true
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+
+resilience4j.ratelimiter:
+  instances:
+    simpleRateLimit:
+      limitForPeriod: 2
+      limitRefreshPeriod: 15s
+      timeoutDuration: 5s
+      registerHealthIndicator: true
+      subscribeForEvents: true
+    rateLimiterEventsExample:
+      limitForPeriod: 2
+      limitRefreshPeriod: 10s
+      timeoutDuration: 5s
+      registerHealthIndicator: true
+      subscribeForEvents: true
+
